@@ -1,0 +1,176 @@
+CODING FOR PLC BASED WIRELESS PROCESS CONTROL
+
+PIC MICROCONTROLLER (DATA ACQUISITION SIDE) :
+
+Data Collection:
+#include <16f688.h>
+#fuses INTRC_IO, NOWDT, NOPUT, NOBROWNOUT, NOPROTECT
+#device adc=10
+#use delay(clock=4M)
+#use rs232(baud=9600, xmit=pin_c4, rcv=pin_c5, bits=8,parity=N, ERRORS)
+//#use i2c(Master,Fast=100000, sda=PIN_c2, scl=PIN_c1,force_sw)
+//#include "caliberi2c.c"
+//!
+
+void main()
+{
+//!lcd_init();
+//! lcd_backlight_led(ON); //Backligth ON
+//!lcd_init();
+FLOAT t,c,v,s,s1;
+setup_adc(ADC_CLOCK_INTERNAL );
+// initialize ADC with a sampling rate of Crystal/4 MHz
+setup_adc_ports(sAN0,sAN1);
+setup_adc_ports(sAN2,sAN3);
+delay_ms(500);
+//!printf(lcd_putc,"\fWELCOME ");
+
+
+//!delay_ms(1000);
+//!printf(lcd_putc,"\fButter Quality\n Control ");
+//!delay_ms(2000);
+//output_high(pin_d0);
+WHILE(1)
+{
+set_adc_channel(0);
+delay_ms(10);
+t=read_adc();
+delay_ms(10);
+t=(t/1023)*500;
+delay_ms(10);
+
+set_adc_channel(1);
+delay_ms(10);
+c=read_adc();
+delay_ms(10);
+c=(c/1023)*10;
+delay_ms(10);
+
+if(t>40)
+{
+printf("A");
+delay_ms(100);
+}
+
+else if(input(pin_c1)==1)
+{
+printf("B");
+
+
+delay_ms(100);
+}
+else if(c>7)
+{
+printf("C");
+delay_ms(100);
+}
+}
+
+Serial Communication:
+#include <16f688.h>
+#fuses INTRC_IO, NOWDT, NOPUT, NOBROWNOUT, NOPROTECT
+#device adc=10
+#use delay(clock=4M)
+#use rs232(baud=9600, xmit=pin_c4, rcv=pin_c5, bits=8,parity=N, ERRORS)
+
+char rcvchar;
+#int_rda
+void serial_isr()
+{
+rcvchar=getch();
+
+if(rcvchar=='A')
+{
+output_high (pin_c0);
+delay_ms(1000);
+
+}
+if(rcvchar=='B')
+{
+
+output_high (pin_c1);
+delay_ms(1000); }
+if(rcvchar=='C') {
+output_high (pin_c2);
+delay_ms(1000); } }
+
+void main() {
+enable_interrupts(int_rda);
+enable_interrupts(global);
+
+delay_ms(10);
+
+while(true) {
+output_low (pin_c0);
+output_low (pin_c1);
+output_low (pin_c2);
+delay_ms(100); }}
+
+PIC MICROCONTROLLER (PLC SIDE) :
+
+Serial Communication:
+#include <16f688.h>
+#fuses INTRC_IO, NOWDT, NOPUT, NOBROWNOUT, NOPROTECT
+#device adc=10
+#use delay(clock=4M)
+#use rs232(baud=9600, xmit=pin_c4, rcv=pin_c5, bits=8,parity=N, ERRORS)
+
+char rcvchar;
+#int_rda
+void serial_isr()
+{
+rcvchar=getch();
+
+if(rcvchar=='E')
+{
+output_high (pin_a1);
+delay_ms(1000);
+
+}
+if(rcvchar=='F')
+{
+output_high (pin_a2);
+delay_ms(1000);
+
+}
+}
+
+void main()
+{
+enable_interrupts(int_rda);
+enable_interrupts(global);
+
+delay_ms(10);
+
+while(true)
+{
+output_low (pin_a1);
+output_low (pin_a2);
+delay_ms(100);
+}
+}
+
+Transmitting Data For PLC:
+#include <16f688.h>
+#fuses INTRC_IO, NOWDT, NOPUT, NOBROWNOUT, NOPROTECT
+#device adc=10
+#use delay(clock=4M)
+#use rs232(baud=9600, xmit=pin_c4, rcv=pin_c5, bits=8,parity=N, ERRORS)
+
+void main()
+{
+WHILE(1)
+{
+if(input(pin_c1)==1)
+
+{
+printf("E");
+delay_ms(100);
+}
+else if(input(pin_c2)==1)
+{
+printf("F");
+delay_ms(100);
+}
+}
+}
